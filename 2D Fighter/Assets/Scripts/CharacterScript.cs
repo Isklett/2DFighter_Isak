@@ -7,8 +7,8 @@ public class CharacterScript : MonoBehaviour
     public float health;
     private float jumpSpeed;
     private float moveSpeed;
-    private int doubleJump = 0;
-    [SerializeField] private int jumpTimer = 0;
+    [SerializeField] private int doubleJump;
+    [SerializeField] private int jumpTimer;
     [SerializeField] Rigidbody rb;
     [SerializeField] private KeyCode right;
     [SerializeField] private KeyCode left;
@@ -64,6 +64,11 @@ public class CharacterScript : MonoBehaviour
         {
             animator.SetBool("isWalking", false);
         }
+        
+    }
+
+    private void Update()
+    {
         Move();
     }
     private void Move()
@@ -72,18 +77,19 @@ public class CharacterScript : MonoBehaviour
         {
             jumpSpeed = 5.0f;
         }
-        else if (doubleJump >= 1)
+        else if (doubleJump > 0)
         {
-            jumpSpeed = 3.5f;
+            jumpSpeed = 4.0f;
         }
 
-        if (Input.GetKeyDown(jump) && doubleJump < 2)
+        if (Input.GetKeyDown(jump) && doubleJump <= 1)
         {
             if (jumpTimer <= 0)
             {
+                rb.velocity = new Vector3(rb.velocity.x, 0.0f, rb.velocity.z);
                 rb.velocity += jumpSpeed * Vector3.up;
                 doubleJump++;
-                jumpTimer = 10;
+                jumpTimer = 5;
             }
         }
         if (Input.GetKey(left))
@@ -93,7 +99,7 @@ public class CharacterScript : MonoBehaviour
                 rb.velocity += moveSpeed * Vector3.left;
             }
         }
-        if (Input.GetKeyDown(slam))
+        if (Input.GetKeyDown(slam) && !isGrounded)
         {
             rb.velocity += -10.0f * Vector3.up;
         }
@@ -137,16 +143,6 @@ public class CharacterScript : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.gameObject.CompareTag("Ground") && rb.velocity.y <= 0.5 && rb.velocity.y >= -0.5 && jumpTimer <= 0)
-        {
-            doubleJump = 0;
-            isGrounded = true;
-        }
-        if (other.gameObject.CompareTag("Platform") && rb.velocity.y <= 0.5 && rb.velocity.y >= -0.5 && jumpTimer <= 0)
-        {
-            doubleJump = 0;
-            isGrounded = true;
-        }
         if (other.gameObject.CompareTag("Platform") && transform.position.y < other.transform.position.y)
         {
             Physics.IgnoreCollision(other.gameObject.GetComponent<BoxCollider>(), gameObject.GetComponent<CapsuleCollider>(), true);
@@ -187,12 +183,24 @@ public class CharacterScript : MonoBehaviour
             }
         }
 
+        if (other.gameObject.CompareTag("Ground") && rb.velocity.y <= 0.5 && rb.velocity.y >= -0.5 && jumpTimer <= 0)
+        {
+            doubleJump = 0;
+            isGrounded = true;
+        }
+        if (other.gameObject.CompareTag("Platform") && rb.velocity.y <= 0.5 && rb.velocity.y >= -0.5 && jumpTimer <= 0)
+        {
+            doubleJump = 0;
+            isGrounded = true;
+        }
+
         if (other.gameObject.CompareTag("Platform"))
         {
             if (Input.GetKeyDown(slam))
             {
                 Physics.IgnoreCollision(other.gameObject.GetComponent<BoxCollider>(), gameObject.GetComponent<CapsuleCollider>(), true);
                 dropTimer = 60;
+                rb.velocity += -1.0f * Vector3.up;
             }
         }
     }
