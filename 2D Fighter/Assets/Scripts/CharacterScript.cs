@@ -16,15 +16,17 @@ public class CharacterScript : MonoBehaviour
     [SerializeField] private KeyCode jump;
     [SerializeField] private KeyCode lightAttack;
     [SerializeField] private KeyCode heavyAttack;
-    [SerializeField] private KeyCode specialAttack;
+    [SerializeField] private KeyCode block;
     private float attackPower;
     [SerializeField] private int dropTimer;
     [SerializeField] private Animator animator;
     [SerializeField] private bool isGrounded;
     private int punchTimer;
+    private int blockTimer;
 
     private void Start()
     {
+        animator = GetComponentInChildren<Animator>();
         moveSpeed = 1.0f;
     }
     void FixedUpdate()
@@ -51,18 +53,39 @@ public class CharacterScript : MonoBehaviour
             punchTimer--;
         }
 
-        if (punchTimer <= 0)
+        if (blockTimer > 0)
         {
-            animator.SetBool("isPunching", false);
+            blockTimer--;
         }
 
-        if (isGrounded && rb.velocity.x > 0.05 || isGrounded && rb.velocity.x < -0.05)
+        //if (punchTimer <= 0)
+        //{
+        //    animator.SetBool("lightAttack", false);
+        //}
+
+        if (isGrounded && rb.velocity.x > 0.05f || isGrounded && rb.velocity.x < -0.05f)
         {
             animator.SetBool("isWalking", true);
+            if (rb.velocity.x > 0.5f || rb.velocity.x < -0.5f)
+            {
+                animator.SetBool("isRunning", true);
+            }
         }
         else
         {
             animator.SetBool("isWalking", false);
+            animator.SetBool("isRunning", false);
+        }
+
+        animator.SetBool("isGrounded", isGrounded);
+
+        if (rb.velocity.y < -0.02f)
+        {
+            animator.SetBool("isDropping", true);
+        }
+        else
+        {
+            animator.SetBool("isDropping", false);
         }
         
     }
@@ -86,6 +109,7 @@ public class CharacterScript : MonoBehaviour
         {
             if (jumpTimer <= 0)
             {
+                animator.SetTrigger("jump");
                 rb.velocity = new Vector3(rb.velocity.x, 0.0f, rb.velocity.z);
                 rb.velocity += jumpSpeed * Vector3.up;
                 doubleJump++;
@@ -113,8 +137,12 @@ public class CharacterScript : MonoBehaviour
 
         if (Attack() && punchTimer <= 0)
         {
-            animator.SetBool("isPunching", true);
             punchTimer = 25;
+        }
+
+        if (Block() && blockTimer <= 0)
+        {
+            blockTimer = 20;
         }
 
     }
@@ -125,20 +153,29 @@ public class CharacterScript : MonoBehaviour
         if (Input.GetKeyDown(lightAttack))
         {
             attackPower = 1.0f;
+            animator.SetTrigger("lightAttack");
             didAttack = true;
         }
         else if (Input.GetKeyDown(heavyAttack))
         {
             attackPower = 1.5f;
-            didAttack = true;
-        }
-        else if (Input.GetKeyDown(specialAttack))
-        {
-            attackPower = 2.0f;
+            animator.SetTrigger("heavyAttack");
             didAttack = true;
         }
 
         return didAttack;
+    }
+
+    private bool Block()
+    {
+        bool temp = false;
+        if (Input.GetKeyDown(block))
+        {
+            animator.SetTrigger("block");
+            temp = true;
+        }
+
+        return temp;
     }
 
     private void OnTriggerEnter(Collider other)
