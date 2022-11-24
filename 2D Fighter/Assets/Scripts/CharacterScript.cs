@@ -4,7 +4,6 @@ using UnityEngine;
 
 public class CharacterScript : MonoBehaviour
 {
-    public float health;
     private float jumpSpeed;
     private float moveSpeed;
     [SerializeField] private int doubleJump;
@@ -14,18 +13,14 @@ public class CharacterScript : MonoBehaviour
     [SerializeField] private KeyCode left;
     [SerializeField] private KeyCode slam;
     [SerializeField] private KeyCode jump;
-    [SerializeField] private KeyCode lightAttack;
-    [SerializeField] private KeyCode heavyAttack;
-    [SerializeField] private KeyCode block;
-    private float attackPower;
     [SerializeField] private int dropTimer;
-    [SerializeField] private Animator animator;
+    private Animator animator;
     [SerializeField] private bool isGrounded;
-    private int punchTimer;
-    private int blockTimer;
+    AttackScript attackScript;
 
-    private void Start()
+    void Start()
     {
+        attackScript = GetComponentInChildren<AttackScript>();
         animator = GetComponentInChildren<Animator>();
         moveSpeed = 1.0f;
     }
@@ -39,31 +34,16 @@ public class CharacterScript : MonoBehaviour
         {
             jumpTimer--;
         }
-        if (rb.velocity.x > 0.2)
+        if (rb.velocity.x > 0.2 && !attackScript.isHit)
         {
             rb.rotation = Quaternion.Euler(0.0f, 90.0f, 0.0f);
         }
-        else if (rb.velocity.x < -0.2)
+        else if (rb.velocity.x < -0.2 && !attackScript.isHit)
         {
             rb.rotation = Quaternion.Euler(0.0f, -90.0f, 0.0f);
         }
 
-        if (punchTimer > 0)
-        {
-            punchTimer--;
-        }
-
-        if (blockTimer > 0)
-        {
-            blockTimer--;
-        }
-
-        //if (punchTimer <= 0)
-        //{
-        //    animator.SetBool("lightAttack", false);
-        //}
-
-        if (isGrounded && rb.velocity.x > 0.05f || isGrounded && rb.velocity.x < -0.05f)
+        if (isGrounded && rb.velocity.x > 0.01f || isGrounded && rb.velocity.x < -0.01f)
         {
             animator.SetBool("isWalking", true);
             if (rb.velocity.x > 0.5f || rb.velocity.x < -0.5f)
@@ -78,21 +58,15 @@ public class CharacterScript : MonoBehaviour
         }
 
         animator.SetBool("isGrounded", isGrounded);
-
-        if (rb.velocity.y < -0.02f)
-        {
-            animator.SetBool("isDropping", true);
-        }
-        else
-        {
-            animator.SetBool("isDropping", false);
-        }
-        
+       
     }
 
     private void Update()
     {
-        Move();
+        if (!attackScript.isHit)
+        {
+            Move();
+        }
     }
     private void Move()
     {
@@ -134,48 +108,6 @@ public class CharacterScript : MonoBehaviour
                 rb.velocity += moveSpeed * Vector3.right;
             }
         }
-
-        if (Attack() && punchTimer <= 0)
-        {
-            punchTimer = 25;
-        }
-
-        if (Block() && blockTimer <= 0)
-        {
-            blockTimer = 20;
-        }
-
-    }
-
-    private bool Attack()
-    {
-        bool didAttack = false;
-        if (Input.GetKeyDown(lightAttack))
-        {
-            attackPower = 1.0f;
-            animator.SetTrigger("lightAttack");
-            didAttack = true;
-        }
-        else if (Input.GetKeyDown(heavyAttack))
-        {
-            attackPower = 1.5f;
-            animator.SetTrigger("heavyAttack");
-            didAttack = true;
-        }
-
-        return didAttack;
-    }
-
-    private bool Block()
-    {
-        bool temp = false;
-        if (Input.GetKeyDown(block))
-        {
-            animator.SetTrigger("block");
-            temp = true;
-        }
-
-        return temp;
     }
 
     private void OnTriggerEnter(Collider other)
@@ -201,25 +133,6 @@ public class CharacterScript : MonoBehaviour
 
     private void OnTriggerStay(Collider other)
     {
-        if (other.gameObject.CompareTag("Player"))
-        {
-            if (Attack() && punchTimer <= 0)
-            {
-                Vector3 dir = other.transform.position - transform.position;
-                if (dir.y < 0.2 && dir.y >= 0)
-                {
-                    dir = new Vector3(dir.x, dir.y + (0.2f - dir.y), dir.z);
-                }
-                else if(dir.y > -0.2 && dir.y < 0)
-                {
-                    dir = new Vector3(dir.x, dir.y - (0.2f - dir.y), dir.z);
-                }
-                other.GetComponent<Rigidbody>().velocity += (other.gameObject.GetComponent<CharacterScript>().health / 100 + 1) * attackPower * dir.normalized;
-                float randIncrease = Random.Range(1, 10);
-                other.gameObject.GetComponent<CharacterScript>().health += attackPower / randIncrease;
-            }
-        }
-
         if (other.gameObject.CompareTag("Ground") && rb.velocity.y <= 0.5 && rb.velocity.y >= -0.5 && jumpTimer <= 0)
         {
             doubleJump = 0;

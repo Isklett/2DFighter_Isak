@@ -9,6 +9,6 @@ public class HealthTextScript : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        gameObject.GetComponent<TMPro.TextMeshProUGUI>().text = System.Math.Round(player1.GetComponent<CharacterScript>().health, 1).ToString() + "%";
+        gameObject.GetComponent<TMPro.TextMeshProUGUI>().text = System.Math.Round(player1.GetComponentInChildren<AttackScript>().health, 1).ToString() + "%";
     }
 }
