@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class CharacterScript : MonoBehaviour
 {
@@ -14,6 +15,7 @@ public class CharacterScript : MonoBehaviour
     [SerializeField] private KeyCode slam;
     [SerializeField] private KeyCode jump;
     [SerializeField] private int dropTimer;
+    [SerializeField] private bool isKeyboard;
     private Animator animator;
     [SerializeField] private bool isGrounded;
     AttackScript attackScript;
@@ -58,7 +60,12 @@ public class CharacterScript : MonoBehaviour
         }
 
         animator.SetBool("isGrounded", isGrounded);
-       
+
+        //if (!attackScript.isHit)
+        //{
+        //    Move();
+        //}
+
     }
 
     private void Update()
@@ -70,6 +77,8 @@ public class CharacterScript : MonoBehaviour
     }
     private void Move()
     {
+        var gamepad = Gamepad.current;
+
         if (doubleJump <= 0)
         {
             jumpSpeed = 5.0f;
@@ -78,35 +87,62 @@ public class CharacterScript : MonoBehaviour
         {
             jumpSpeed = 4.0f;
         }
+        
+        if (isKeyboard)
+        {
+            if (Input.GetKeyDown(jump) && doubleJump <= 1)
+            {
+                if (jumpTimer <= 0)
+                {
+                    animator.SetTrigger("jump");
+                    rb.velocity = new Vector3(rb.velocity.x, 0.0f, rb.velocity.z);
+                    rb.velocity += jumpSpeed * Vector3.up;
+                    doubleJump++;
+                    jumpTimer = 5;
+                }
+            }
+            if (Input.GetKey(left))
+            {
+                if (rb.velocity.x >= -2.0f)
+                {
+                    rb.velocity += moveSpeed * Vector3.left;
+                }
+            }
+            if (Input.GetKeyDown(slam) && !isGrounded)
+            {
+                rb.velocity += -10.0f * Vector3.up;
+            }
+            if (Input.GetKey(right))
+            {
+                if (rb.velocity.x <= 2.0f)
+                {
+                    rb.velocity += moveSpeed * Vector3.right;
+                }
+            }
+        }
 
-        if (Input.GetKeyDown(jump) && doubleJump <= 1)
+        if (!isKeyboard)
         {
-            if (jumpTimer <= 0)
+            if (gamepad.aButton.wasPressedThisFrame && doubleJump <= 1)
             {
-                animator.SetTrigger("jump");
-                rb.velocity = new Vector3(rb.velocity.x, 0.0f, rb.velocity.z);
-                rb.velocity += jumpSpeed * Vector3.up;
-                doubleJump++;
-                jumpTimer = 5;
+                if (jumpTimer <= 0)
+                {
+                    animator.SetTrigger("jump");
+                    rb.velocity = new Vector3(rb.velocity.x, 0.0f, rb.velocity.z);
+                    rb.velocity += jumpSpeed * Vector3.up;
+                    doubleJump++;
+                    jumpTimer = 5;
+                }
             }
-        }
-        if (Input.GetKey(left))
-        {
-            if (rb.velocity.x >= -2.0f)
+            if (rb.velocity.x >= -2.0f && gamepad.leftStick.ReadValue().x < 0.0f)
             {
-                rb.velocity += moveSpeed * Vector3.left;
+                rb.velocity += new Vector3(gamepad.leftStick.ReadValue().x * moveSpeed, 0.0f, 0.0f);
             }
-        }
-        if (Input.GetKeyDown(slam) && !isGrounded)
-        {
-            rb.velocity += -10.0f * Vector3.up;
-        }
-        if (Input.GetKey(right))
-        {
-            if (rb.velocity.x <= 2.0f)
+            if (rb.velocity.x <= 2.0f && gamepad.leftStick.ReadValue().x > 0.0f)
             {
-                rb.velocity += moveSpeed * Vector3.right;
+                rb.velocity += new Vector3(gamepad.leftStick.ReadValue().x * moveSpeed, 0.0f, 0.0f);
             }
+
         }
     }
 

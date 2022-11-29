@@ -18,8 +18,11 @@ public class AttackScript : MonoBehaviour
     private bool secondAttack;
     private int punchTimer;
     private int blockTimer;
+    public bool isBlock;
     public bool isHit;
     private bool gotHit;
+    public bool hitAnim;
+    private bool onlyOneHitAnim;
     [SerializeField] private int hitTimer;
     [SerializeField] private int heavyTimer;
     private bool isHeavyAttack;
@@ -73,14 +76,14 @@ public class AttackScript : MonoBehaviour
             animator.SetFloat("heavySpeed", 0.8f);
         }
 
-        if (rb.velocity.magnitude >= 5)
-        {
-            isHit = true;
-            if (hitTimer <= 0)
-            {
-                hitTimer = 20;
-            }
-        }
+        //if (rb.velocity.magnitude >= 5)
+        //{
+        //    isHit = true;
+        //    if (hitTimer <= 0)
+        //    {
+        //        hitTimer = 20;
+        //    }
+        //}
 
         if (gotHit)
         {
@@ -96,6 +99,12 @@ public class AttackScript : MonoBehaviour
         {
             isHit = true;
             hitTimer--;
+        }
+
+        if (hitAnim)
+        {
+            animator.SetTrigger("gotHit");
+            hitAnim = false;
         }
     }
 
@@ -123,7 +132,6 @@ public class AttackScript : MonoBehaviour
             }
             if (heavyTimer <= 12 && heavyTimer >= 8)
             {
-                print("HIT");
                 Damage(other);
             }
         }
@@ -156,10 +164,31 @@ public class AttackScript : MonoBehaviour
                 }
             }
         }
-        if (Block() && blockTimer <= 0)
+        if (blockTimer <= 0)
         {
-            blockTimer = 20;
+            if (Block())
+            {
+                animator.SetTrigger("block");
+                blockTimer = 50;
+            }
         }
+
+        if (blockTimer >= 30)
+        {
+            isBlock = true;
+        }
+        else
+        {
+            isBlock = false;
+        }
+    }
+
+    public IEnumerator BlockCR(Collider other)
+    {
+        onlyOneHitAnim = true;
+        other.GetComponent<AttackScript>().hitAnim = true;
+        yield return new WaitForSeconds(0.1f);
+        onlyOneHitAnim = false;
     }
 
     private bool Attack()
@@ -188,7 +217,6 @@ public class AttackScript : MonoBehaviour
         bool temp = false;
         if (Input.GetKeyDown(block))
         {
-            animator.SetTrigger("block");
             temp = true;
         }
 
@@ -197,19 +225,27 @@ public class AttackScript : MonoBehaviour
 
     private void Damage(Collider other)
     {
-        other.GetComponent<AttackScript>().gotHit = true;
-        Vector3 dir = other.transform.position - transform.position;
-        if (dir.y < 0.5 && dir.y >= 0)
+        if (!onlyOneHitAnim)
         {
-            dir = new Vector3(dir.x, dir.y + (0.5f - dir.y), dir.z);
+            StartCoroutine(BlockCR(other));
         }
-        else if (dir.y > -0.5 && dir.y < 0)
+        if (!other.GetComponent<AttackScript>().isBlock)
         {
-            dir = new Vector3(dir.x, dir.y - (0.5f - dir.y), dir.z);
+            other.GetComponent<AttackScript>().gotHit = true;
+            Vector3 dir = other.transform.position - transform.position;
+            if (dir.y < 1.0f && dir.y >= 0)
+            {
+                dir = new Vector3(dir.x, dir.y + (1.0f - dir.y), dir.z);
+            }
+            else if (dir.y > -1.0f && dir.y < 0)
+            {
+                dir = new Vector3(dir.x, dir.y - (1.0f - dir.y), dir.z);
+            }
+            other.GetComponentInParent<Rigidbody>().velocity = new Vector3(1.0f, 1.0f, 1.0f);
+            other.GetComponentInParent<Rigidbody>().velocity += ((other.gameObject.GetComponent<AttackScript>().health / 100) + 1) * attackPower * dir.normalized;
+            float randIncrease = Random.Range(1, 10);
+            other.gameObject.GetComponent<AttackScript>().health += attackPower / randIncrease;
+
         }
-        other.GetComponentInParent<Rigidbody>().velocity = new Vector3(1.0f, 1.0f, 1.0f);
-        other.GetComponentInParent<Rigidbody>().velocity += ((other.gameObject.GetComponent<AttackScript>().health / 100) + 1) * attackPower * dir.normalized;
-        float randIncrease = Random.Range(1, 10);
-        other.gameObject.GetComponent<AttackScript>().health += attackPower / randIncrease;
     }
 }
