@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class AttackScript : MonoBehaviour
 {
@@ -12,7 +13,7 @@ public class AttackScript : MonoBehaviour
     [SerializeField] private Animator animator;
     [SerializeField] private Animator maleAnimator;
     [SerializeField] private Animator femaleAnimator;
-    private Rigidbody rb;
+    //private Rigidbody rb;
     public float health;
     private float attackPower;
     private bool secondAttack;
@@ -28,12 +29,12 @@ public class AttackScript : MonoBehaviour
     private bool isHeavyAttack;
     private BoxCollider boxHitbox;
     [SerializeField] List<Collider> colliders;
-    
+
 
     // Start is called before the first frame update
     void Start()
     {
-        rb = GetComponentInParent<Rigidbody>();
+        //rb = GetComponentInParent<Rigidbody>();
         boxHitbox = GetComponent<BoxCollider>();
         for (int i = 0; i < colliders.Count; i++)
         {
@@ -88,6 +89,7 @@ public class AttackScript : MonoBehaviour
         if (gotHit)
         {
             hitTimer = 20;
+            heavyTimer = 0;
             gotHit = false;
         }
 
@@ -153,9 +155,9 @@ public class AttackScript : MonoBehaviour
                     secondAttack = true;
                     animator.SetBool("secondAttack", true);
                 }
-                if (isHeavyAttack)
+                if (isHeavyAttack && heavyTimer <= 0)
                 {
-                    punchTimer = 40;
+                    punchTimer = 60;
                     heavyTimer = 40;
                 }
                 else
@@ -194,19 +196,40 @@ public class AttackScript : MonoBehaviour
     private bool Attack()
     {
         bool didAttack = false;
-        if (Input.GetKeyDown(lightAttack))
+        if (GetComponentInParent<CharacterScript>().isKeyboard)
         {
-            isHeavyAttack = false;
-            attackPower = 1.2f;
-            animator.SetTrigger("lightAttack");
-            didAttack = true;
+            if (Input.GetKeyDown(lightAttack))
+            {
+                isHeavyAttack = false;
+                attackPower = 1.2f;
+                animator.SetTrigger("lightAttack");
+                didAttack = true;
+            }
+            else if (Input.GetKeyDown(heavyAttack))
+            {
+                isHeavyAttack = true;
+                attackPower = 1.6f;
+                animator.SetTrigger("heavyAttack");
+                didAttack = true;
+            }
         }
-        else if (Input.GetKeyDown(heavyAttack))
+        else
         {
-            isHeavyAttack = true;
-            attackPower = 1.4f;
-            animator.SetTrigger("heavyAttack");
-            didAttack = true;
+            var gamepad = Gamepad.current;
+            if (gamepad.xButton.wasPressedThisFrame)
+            {
+                isHeavyAttack = false;
+                attackPower = 1.2f;
+                animator.SetTrigger("lightAttack");
+                didAttack = true;
+            }
+            else if (gamepad.bButton.wasPressedThisFrame)
+            {
+                isHeavyAttack = true;
+                attackPower = 1.6f;
+                animator.SetTrigger("heavyAttack");
+                didAttack = true;
+            }
         }
 
         return didAttack;
@@ -215,9 +238,20 @@ public class AttackScript : MonoBehaviour
     private bool Block()
     {
         bool temp = false;
-        if (Input.GetKeyDown(block))
+        if (GetComponentInParent<CharacterScript>().isKeyboard)
         {
-            temp = true;
+            if (Input.GetKeyDown(block))
+            {
+                temp = true;
+            }
+        }
+        else
+        {
+            var gamepad = Gamepad.current;
+            if (gamepad.rightShoulder.wasPressedThisFrame)
+            {
+                temp = true;
+            }
         }
 
         return temp;
