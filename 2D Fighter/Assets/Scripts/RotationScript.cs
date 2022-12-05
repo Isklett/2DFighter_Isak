@@ -20,20 +20,19 @@ public class RotationScript : MonoBehaviour
         if (!GetComponentInParent<CharacterScript>().isKeyboard)
         {
             var gamepad = Gamepad.current;
-            
+
+            if (gamepad.leftStick.ReadValue().x > 0)
+            {
+                lookingRight = true;
+            }
+            else if (gamepad.leftStick.ReadValue().x < 0)
+            {
+                lookingRight = false;
+            }
+
             if (gamepad.rightStick.ReadValue().magnitude > 0.02)
             {
                 Vector2 temp = gamepad.rightStick.ReadValue();
-
-                if (gamepad.leftStick.ReadValue().x > 0)
-                {
-                    lookingRight = true;
-                }
-                else if(gamepad.leftStick.ReadValue().x < 0)
-                {
-                    lookingRight = false;
-                }
-
                 //Clamp
                 //if (lookingRight)
                 //{
@@ -59,31 +58,58 @@ public class RotationScript : MonoBehaviour
                 //}
 
                 //If
-                if (lookingRight)
+                if (GetComponentInParent<CharacterScript>().rightStickTurn)
                 {
-                    Zangle = Mathf.Atan2(temp.x, temp.y) * Mathf.Rad2Deg;
-                    //print(Zangle);
+                    if (lookingRight)
+                    {
+                        Zangle = Mathf.Atan2(temp.x, temp.y) * Mathf.Rad2Deg;
+                        //print(Zangle);
+                    }
+                    else
+                    {
+                        Zangle = Mathf.Atan2(temp.x, temp.y) * Mathf.Rad2Deg * -1;
+                        //print(Zangle);
+                    }
+
+                    if (Zangle <= 20 && Zangle >= -100)
+                    {
+                        Zangle = 20;
+                    }
+                    else if (Zangle < -100)
+                    {
+                        Zangle = 180;
+                    }
                 }
                 else
                 {
-                    Zangle = Mathf.Atan2(temp.x, temp.y) * Mathf.Rad2Deg * -1;
-                    //print(Zangle);
+                    if (temp.y > 0.8f)
+                    {
+                        Zangle = -90;
+                    }
+                    
                 }
-
-                if (Zangle <= 20 && Zangle >= -100)
+            }
+            else
+            {
+                if (lookingRight)
                 {
-                    Zangle = 20;
+                    Zangle = 0;
                 }
-                else if (Zangle < -100)
+                else
                 {
-                    Zangle = 180;
+                    Zangle = 0;
                 }
-
             }
 
 
-
-            transform.localRotation = Quaternion.Euler(Zangle - 90, 0, 0);
+            if (GetComponentInParent<CharacterScript>().rightStickTurn)
+            {
+                transform.localRotation = Quaternion.Euler(Zangle - 90, 0, 0);
+            }
+            else
+            {
+                transform.localRotation = Quaternion.Euler(Zangle, 0, 0);
+            }
         }
         else
         {

@@ -24,6 +24,8 @@ public class AttackScript : MonoBehaviour
     private bool gotHit;
     public bool hitAnim;
     private bool onlyOneHitAnim;
+    private bool attack;
+    [SerializeField] private int attackTimer;
     [SerializeField] private int hitTimer;
     [SerializeField] private int heavyTimer;
     private bool isHeavyAttack;
@@ -35,6 +37,7 @@ public class AttackScript : MonoBehaviour
     void Start()
     {
         //rb = GetComponentInParent<Rigidbody>();
+        attack = false;
         boxHitbox = GetComponent<BoxCollider>();
         for (int i = 0; i < colliders.Count; i++)
         {
@@ -66,6 +69,11 @@ public class AttackScript : MonoBehaviour
         if (heavyTimer > 0)
         {
             heavyTimer--;
+        }
+
+        if (attackTimer > 0)
+        {
+            attackTimer--;
         }
 
         if (heavyTimer > 15)
@@ -122,15 +130,26 @@ public class AttackScript : MonoBehaviour
     {
         if (other.gameObject.CompareTag("Hitbox"))
         {
-            if (punchTimer <= 0)
+            //if (punchTimer <= 0)
+            //{
+            //    if (attackTimer > 0)
+            //    {
+            //        print("gotAttacked");
+            //        if (!isHeavyAttack)
+            //        {
+            //            Damage(other);
+            //        }
+            //        attackTimer = 0;
+            //    }
+            //}
+            if (attackTimer > 0)
             {
-                if (Attack())
+                print("gotAttacked");
+                if (!isHeavyAttack)
                 {
-                    if (!isHeavyAttack)
-                    {
-                        Damage(other);
-                    }
+                    Damage(other);
                 }
+                attackTimer = 0;
             }
             if (heavyTimer <= 12 && heavyTimer >= 8)
             {
@@ -141,10 +160,12 @@ public class AttackScript : MonoBehaviour
 
     private void Move()
     {
+        
         if (punchTimer <= 0)
         {
             if (Attack())
             {
+                attackTimer = 15;
                 if (secondAttack)
                 {
                     secondAttack = false;
@@ -196,6 +217,7 @@ public class AttackScript : MonoBehaviour
     private bool Attack()
     {
         bool didAttack = false;
+        //attackTimer = 15;
         if (GetComponentInParent<CharacterScript>().isKeyboard)
         {
             if (Input.GetKeyDown(lightAttack))
@@ -218,6 +240,7 @@ public class AttackScript : MonoBehaviour
             var gamepad = Gamepad.current;
             if (gamepad.xButton.wasPressedThisFrame)
             {
+                print("light");
                 isHeavyAttack = false;
                 attackPower = 1.2f;
                 animator.SetTrigger("lightAttack");
@@ -266,6 +289,7 @@ public class AttackScript : MonoBehaviour
         if (!other.GetComponent<AttackScript>().isBlock)
         {
             other.GetComponent<AttackScript>().gotHit = true;
+            print("hit");
             Vector3 dir = other.transform.position - transform.position;
             if (dir.y < 1.0f && dir.y >= 0)
             {
