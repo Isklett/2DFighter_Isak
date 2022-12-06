@@ -4,11 +4,11 @@ using UnityEngine;
 
 public class HealthTextScript : MonoBehaviour
 {
-    public GameObject player1;
+    public GameObject player;
 
     // Update is called once per frame
     void Update()
     {
-        gameObject.GetComponent<TMPro.TextMeshProUGUI>().text = System.Math.Round(player1.GetComponentInChildren<AttackScript>().health, 1).ToString() + "%";
+        gameObject.GetComponent<TMPro.TextMeshProUGUI>().text = System.Math.Round(player.GetComponentInChildren<AttackScript>().health, 1).ToString() + "%";
     }
 }

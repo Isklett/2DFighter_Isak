@@ -15,7 +15,7 @@ public class CharacterScript : MonoBehaviour
     [SerializeField] private KeyCode slam;
     [SerializeField] private KeyCode jump;
     [SerializeField] private int dropTimer;
-    [SerializeField] public bool rightStickTurn;
+    public bool rightStickTurn;
     public bool isKeyboard;
     private Animator animator;
     [SerializeField] private bool isGrounded;
@@ -161,6 +161,7 @@ public class CharacterScript : MonoBehaviour
     {
         GetComponentInChildren<AttackScript>().health = 0.0f;
         transform.position = new Vector3(0, 10, 0);
+        rb.velocity = Vector3.zero;
     }
 
 

@@ -24,10 +24,10 @@ public class AttackScript : MonoBehaviour
     private bool gotHit;
     public bool hitAnim;
     private bool onlyOneHitAnim;
-    private bool attack;
     [SerializeField] private int attackTimer;
     [SerializeField] private int hitTimer;
     [SerializeField] private int heavyTimer;
+    private bool lightTest;
     private bool isHeavyAttack;
     private BoxCollider boxHitbox;
     [SerializeField] List<Collider> colliders;
@@ -37,7 +37,6 @@ public class AttackScript : MonoBehaviour
     void Start()
     {
         //rb = GetComponentInParent<Rigidbody>();
-        attack = false;
         boxHitbox = GetComponent<BoxCollider>();
         for (int i = 0; i < colliders.Count; i++)
         {
@@ -76,13 +75,14 @@ public class AttackScript : MonoBehaviour
             attackTimer--;
         }
 
-        if (heavyTimer > 15)
+        if (hitTimer > 0)
         {
-            animator.SetFloat("heavySpeed", 0.2f);
+            hitTimer--;
         }
-        else
+
+        if (punchTimer <= 0)
         {
-            animator.SetFloat("heavySpeed", 0.8f);
+            lightTest = false;
         }
 
         //if (rb.velocity.magnitude >= 5)
@@ -94,13 +94,6 @@ public class AttackScript : MonoBehaviour
         //    }
         //}
 
-        if (gotHit)
-        {
-            hitTimer = 20;
-            heavyTimer = 0;
-            gotHit = false;
-        }
-
         if (hitTimer <= 0)
         {
             isHit = false;
@@ -108,7 +101,22 @@ public class AttackScript : MonoBehaviour
         else
         {
             isHit = true;
-            hitTimer--;
+        }
+
+        if (gotHit)
+        {
+            hitTimer = 20;
+            heavyTimer = 0;
+            gotHit = false;
+        }
+
+        if (heavyTimer > 15)
+        {
+            animator.SetFloat("heavySpeed", 0.2f);
+        }
+        else
+        {
+            animator.SetFloat("heavySpeed", 0.8f);
         }
 
         if (hitAnim)
@@ -144,12 +152,11 @@ public class AttackScript : MonoBehaviour
             //}
             if (attackTimer > 0)
             {
-                print("gotAttacked");
                 if (!isHeavyAttack)
                 {
                     Damage(other);
+                    attackTimer = 0;
                 }
-                attackTimer = 0;
             }
             if (heavyTimer <= 12 && heavyTimer >= 8)
             {
@@ -161,11 +168,10 @@ public class AttackScript : MonoBehaviour
     private void Move()
     {
         
-        if (punchTimer <= 0)
+        if (punchTimer <= 0 && !lightTest)
         {
             if (Attack())
             {
-                attackTimer = 15;
                 if (secondAttack)
                 {
                     secondAttack = false;
@@ -183,19 +189,12 @@ public class AttackScript : MonoBehaviour
                 }
                 else
                 {
-                    punchTimer = 25;
+                    punchTimer = 30;
                 }
+                lightTest = true;
+                attackTimer = 15;
             }
         }
-        if (blockTimer <= 0)
-        {
-            if (Block())
-            {
-                animator.SetTrigger("block");
-                blockTimer = 50;
-            }
-        }
-
         if (blockTimer >= 30)
         {
             isBlock = true;
@@ -203,13 +202,28 @@ public class AttackScript : MonoBehaviour
         else
         {
             isBlock = false;
+            if (Block())
+            {
+                animator.SetTrigger("block");
+                blockTimer = 50;
+            }
         }
+        //if (blockTimer <= 0)
+        //{
+        //    if (Block())
+        //    {
+        //        animator.SetTrigger("block");
+        //        blockTimer = 50;
+        //    }
+        //}
+
+       
     }
 
     public IEnumerator BlockCR(Collider other)
     {
         onlyOneHitAnim = true;
-        other.GetComponent<AttackScript>().hitAnim = true;
+        other.GetComponentInParent<AttackScript>().hitAnim = true;
         yield return new WaitForSeconds(0.1f);
         onlyOneHitAnim = false;
     }
@@ -223,14 +237,14 @@ public class AttackScript : MonoBehaviour
             if (Input.GetKeyDown(lightAttack))
             {
                 isHeavyAttack = false;
-                attackPower = 1.2f;
+                attackPower = 4.5f;
                 animator.SetTrigger("lightAttack");
                 didAttack = true;
             }
             else if (Input.GetKeyDown(heavyAttack))
             {
                 isHeavyAttack = true;
-                attackPower = 1.6f;
+                attackPower = 1.5f;
                 animator.SetTrigger("heavyAttack");
                 didAttack = true;
             }
@@ -240,16 +254,15 @@ public class AttackScript : MonoBehaviour
             var gamepad = Gamepad.current;
             if (gamepad.xButton.wasPressedThisFrame)
             {
-                print("light");
                 isHeavyAttack = false;
-                attackPower = 1.2f;
+                attackPower = 4.5f;
                 animator.SetTrigger("lightAttack");
                 didAttack = true;
             }
             else if (gamepad.bButton.wasPressedThisFrame)
             {
                 isHeavyAttack = true;
-                attackPower = 1.6f;
+                attackPower = 1.5f;
                 animator.SetTrigger("heavyAttack");
                 didAttack = true;
             }
@@ -284,12 +297,13 @@ public class AttackScript : MonoBehaviour
     {
         if (!onlyOneHitAnim)
         {
-            StartCoroutine(BlockCR(other));
+            if (other != null)
+            {
+                StartCoroutine(BlockCR(other));
+            }
         }
-        if (!other.GetComponent<AttackScript>().isBlock)
+        if (!other.GetComponentInParent<AttackScript>().isBlock)
         {
-            other.GetComponent<AttackScript>().gotHit = true;
-            print("hit");
             Vector3 dir = other.transform.position - transform.position;
             if (dir.y < 1.0f && dir.y >= 0)
             {
@@ -299,10 +313,11 @@ public class AttackScript : MonoBehaviour
             {
                 dir = new Vector3(dir.x, dir.y - (1.0f - dir.y), dir.z);
             }
-            other.GetComponentInParent<Rigidbody>().velocity = new Vector3(1.0f, 1.0f, 1.0f);
-            other.GetComponentInParent<Rigidbody>().velocity += ((other.gameObject.GetComponent<AttackScript>().health / 100) + 1) * attackPower * dir.normalized;
+            //other.GetComponentInParent<Rigidbody>().velocity = new Vector3(other.GetComponentInParent<Rigidbody>().velocity.x / 10, other.GetComponentInParent<Rigidbody>().velocity.y / 10, other.GetComponentInParent<Rigidbody>().velocity.z / 10);
+            other.GetComponentInParent<Rigidbody>().velocity += ((other.gameObject.GetComponentInParent<AttackScript>().health / 100) + 1) * attackPower * dir.normalized;
             float randIncrease = Random.Range(1, 10);
-            other.gameObject.GetComponent<AttackScript>().health += attackPower / randIncrease;
+            other.gameObject.GetComponentInParent<AttackScript>().health += attackPower / randIncrease;
+            other.GetComponentInParent<AttackScript>().gotHit = true;
 
         }
     }
