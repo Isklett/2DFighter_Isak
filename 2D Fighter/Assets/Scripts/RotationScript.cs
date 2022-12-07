@@ -3,18 +3,11 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
+//ANVÄNDS INTE I SPELET ATM
 public class RotationScript : MonoBehaviour
 {
     private float Zangle;
     private bool lookingRight;
-    //private Quaternion parentRot;
-
-    //private void Start()
-    //{
-    //    parentRot = GetComponentInParent<Transform>().transform.localRotation;
-    //}
-
-    // Update is called once per frame
     void FixedUpdate()
     {
         if (!GetComponentInParent<CharacterScript>().isKeyboard)
@@ -30,32 +23,10 @@ public class RotationScript : MonoBehaviour
                 lookingRight = false;
             }
 
+            //Kollar hur mycket höger spak är roterad och roterar karaktären efter det
             if (gamepad.rightStick.ReadValue().magnitude > 0.02)
             {
                 Vector2 temp = gamepad.rightStick.ReadValue();
-                //Clamp
-                //if (lookingRight)
-                //{
-                //    Zangle = Mathf.Clamp(Mathf.Atan2(temp.x, temp.y) * Mathf.Rad2Deg, 20, 180);
-                //    print(Zangle);
-                //}
-                //else
-                //{
-                //    Zangle = Mathf.Clamp(Mathf.Atan2(temp.x, temp.y) * Mathf.Rad2Deg * -1, 20, 180);
-                //    print(Zangle);
-                //}
-
-                //Abs
-                //if (lookingRight)
-                //{
-                //    Zangle = Mathf.Abs(Mathf.Atan2(temp.x, temp.y) * Mathf.Rad2Deg);
-                //    print(Zangle);
-                //}
-                //else
-                //{
-                //    Zangle = Mathf.Abs(Mathf.Atan2(temp.x, temp.y) * Mathf.Rad2Deg * -1);
-                //    print(Zangle);
-                //}
 
                 //If
                 if (GetComponentInParent<CharacterScript>().rightStickTurn)
@@ -63,12 +34,10 @@ public class RotationScript : MonoBehaviour
                     if (lookingRight)
                     {
                         Zangle = Mathf.Atan2(temp.x, temp.y) * Mathf.Rad2Deg;
-                        //print(Zangle);
                     }
                     else
                     {
                         Zangle = Mathf.Atan2(temp.x, temp.y) * Mathf.Rad2Deg * -1;
-                        //print(Zangle);
                     }
 
                     if (Zangle <= 20 && Zangle >= -100)
@@ -111,10 +80,5 @@ public class RotationScript : MonoBehaviour
                 transform.localRotation = Quaternion.Euler(Zangle, 0, 0);
             }
         }
-        else
-        {
-
-        }
-
     }
 }

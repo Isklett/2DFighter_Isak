@@ -17,7 +17,7 @@ public class GameManagerScript : MonoBehaviour
         isMenu = true;
     }
 
-    public void StartGame()
+    private void Update()
     {
         if (pInputMan.playerCount >= 2)
         {
@@ -27,6 +27,18 @@ public class GameManagerScript : MonoBehaviour
         {
             enoughPlayers = false;
         }
+    }
+
+    public void StartGame()
+    {
+        isPlaying = true;
+        isMenu = false;
+    }
+
+    public void PauseGame()
+    {
+        isPlaying = false;
+        isMenu = true;
     }
 
 }

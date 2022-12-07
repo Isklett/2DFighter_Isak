@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 
 public class CharacterScript : MonoBehaviour
 {
@@ -21,7 +22,6 @@ public class CharacterScript : MonoBehaviour
     [SerializeField] private bool isGrounded;
     AttackScript attackScript;
     public int health;
-    [SerializeField] private GameManagerScript gameManagerScript;
     [SerializeField] private PlayerInput playerInput;
 
     //Input
@@ -41,6 +41,7 @@ public class CharacterScript : MonoBehaviour
     }
     void FixedUpdate()
     {
+        //Timers, rotation beroende på riktning samt animationer
         if (dropTimer > 0)
         {
             dropTimer--;
@@ -83,19 +84,14 @@ public class CharacterScript : MonoBehaviour
 
     private void Update()
     {
-        if (gameManagerScript.isMenu)
-        {
-            playerInput.SwitchCurrentActionMap("UI");
-        }
-        else if (gameManagerScript.isPlaying)
-        {
-            playerInput.SwitchCurrentActionMap("Player");
-        }
+        //Kan inte röra sig om man precis blivit träffad
         if (!attackScript.isHit)
         {
             Move();
         }
     }
+
+    //Rörelsekontroller
     private void Move()
     {
         if (doubleJump <= 0)
@@ -134,13 +130,26 @@ public class CharacterScript : MonoBehaviour
 
     private void Respawn()
     {
-        GetComponentInChildren<AttackScript>().health = 0.0f;
-        transform.position = new Vector3(0, 10, 0);
-        rb.velocity = Vector3.zero;
-        health--;
+        if (health > 1)
+        {
+            GetComponentInChildren<AttackScript>().health = 0.0f;
+            transform.position = new Vector3(0, 10, 0);
+            rb.velocity = Vector3.zero;
+            health--;
+        }
+        else
+        {
+            GameOver();
+        }
+    }
+
+    private void GameOver()
+    {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 
 
+    //Gör så att spelaren kan hoppa igenom platformar underifrån samt landa på dom
     private void OnTriggerEnter(Collider other)
     {
         if (other.gameObject.CompareTag("Platform") && transform.position.y < other.transform.position.y)
@@ -175,6 +184,7 @@ public class CharacterScript : MonoBehaviour
             isGrounded = true;
         }
 
+        //Gör så spelaren kan hoppa ner genom en platform via knapptryck
         if (other.gameObject.CompareTag("Platform"))
         {
             if (movementInput.x < 0.3 && movementInput.x > -0.3 && movementInput.y < -0.7 && dropTimer <= 0)

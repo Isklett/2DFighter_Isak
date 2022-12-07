@@ -146,7 +146,6 @@ MonoBehaviour:
   isKeyboard: 0
   isGrounded: 0
   health: 0
-  gameManagerScript: {fileID: 0}
   playerInput: {fileID: 0}
 --- !u!114 &5987237432331088100
 MonoBehaviour:
@@ -309,6 +308,38 @@ MonoBehaviour:
         m_CallState: 2
     m_ActionId: 09e69068-3655-4c66-99eb-986ca1c88668
     m_ActionName: UI/UpPress[/XInputControllerWindows1/dpad/up,/XInputControllerWindows/dpad/up,/Keyboard/upArrow]
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 1617208963607113692}
+        m_TargetAssemblyTypeName: MenuScript, Assembly-CSharp
+        m_MethodName: OnPause
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: 9d495e5d-2d4b-4e3d-aa5e-411f0639c977
+    m_ActionName: UI/Pause[/XInputControllerWindows/start,/XInputControllerWindows1/start,/Keyboard/escape]
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 1617208963607113692}
+        m_TargetAssemblyTypeName: MenuScript, Assembly-CSharp
+        m_MethodName: OnPause
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: 0ad781b2-8e6f-4a99-9286-a2b5bcaa8bab
+    m_ActionName: Player/Pause[/XInputControllerWindows/start,/XInputControllerWindows1/start,/Keyboard/escape]
   m_NeverAutoSwitchControlSchemes: 0
   m_DefaultControlScheme: 
   m_DefaultActionMap: Player
@@ -328,7 +359,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   StartButton: {fileID: 0}
   QuitButton: {fileID: 0}
+  startMenuUI: {fileID: 0}
   gameManagerScript: {fileID: 0}
+  hasStarted: 0
+  whatPlayer: 0
 --- !u!1 &5987237432428979401
 GameObject:
   m_ObjectHideFlags: 0

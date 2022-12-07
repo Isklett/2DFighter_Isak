@@ -29,7 +29,6 @@ public class AttackScript : MonoBehaviour
     [SerializeField] private int heavyTimer;
     private bool lightTest;
     private bool isHeavyAttack;
-    //[SerializeField] List<Collider> colliders;
 
     //Inputs
     private bool lightAttack_state_toggled = false;
@@ -44,10 +43,6 @@ public class AttackScript : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        //for (int i = 0; i < colliders.Count; i++)
-        //{
-        //    Physics.IgnoreCollision(boxHitbox, colliders[i], true);
-        //}
         if (male.activeSelf)
         {
             animator = male.GetComponent<Animator>();
@@ -122,7 +117,6 @@ public class AttackScript : MonoBehaviour
             hitAnim = false;
         }
     }
-
     private void Update()
     {
         if (!isHit)
@@ -133,6 +127,7 @@ public class AttackScript : MonoBehaviour
 
     private void OnTriggerStay(Collider other)
     {
+        //Attack check
         if (other.gameObject.CompareTag("Hitbox"))
         {
             if (attackTimer > 0)
@@ -152,7 +147,7 @@ public class AttackScript : MonoBehaviour
 
     private void Move()
     {
-        
+        //Sätter rätt animation och rätt värden beroende på attack
         if (punchTimer <= 0 && !lightTest)
         {
             if (Attack())
@@ -193,16 +188,6 @@ public class AttackScript : MonoBehaviour
                 blockTimer = 50;
             }
         }
-        //if (blockTimer <= 0)
-        //{
-        //    if (Block())
-        //    {
-        //        animator.SetTrigger("block");
-        //        blockTimer = 50;
-        //    }
-        //}
-
-       
     }
 
     public IEnumerator BlockCR(Collider other)
@@ -213,6 +198,7 @@ public class AttackScript : MonoBehaviour
         onlyOneHitAnim = false;
     }
 
+    //Gör det möjligt att attackera med två olika attacker
     private bool Attack()
     {
         bool didAttack = false;
@@ -244,6 +230,7 @@ public class AttackScript : MonoBehaviour
         return temp;
     }
 
+    //Skadar spelaren man kolliderar med
     private void Damage(Collider other)
     {
         if (!onlyOneHitAnim)
@@ -264,7 +251,6 @@ public class AttackScript : MonoBehaviour
             {
                 dir = new Vector3(dir.x, dir.y - (1.0f - dir.y), dir.z);
             }
-            //other.GetComponentInParent<Rigidbody>().velocity = new Vector3(other.GetComponentInParent<Rigidbody>().velocity.x / 10, other.GetComponentInParent<Rigidbody>().velocity.y / 10, other.GetComponentInParent<Rigidbody>().velocity.z / 10);
             other.GetComponentInParent<Rigidbody>().velocity += ((other.gameObject.GetComponentInParent<AttackScript>().health / 100) + 1) * attackPower * dir.normalized;
             float randIncrease = Random.Range(1, 10);
             other.gameObject.GetComponentInParent<AttackScript>().health += attackPower / randIncrease * 5;

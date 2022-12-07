@@ -8816,14 +8816,18 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1291362185}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 17f00ec108c44ce47b69013e9857bb76, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   StartButton: {fileID: 1680753232}
   QuitButton: {fileID: 1357691699}
+  startMenuUIStart: {fileID: 0}
+  startMenuUIQuit: {fileID: 0}
   gameManagerScript: {fileID: 0}
+  hasStarted: 0
+  whatPlayer: 0
 --- !u!1001 &1298001292
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -10371,7 +10375,7 @@ MonoBehaviour:
   m_NotificationBehavior: 0
   m_MaxPlayerCount: 2
   m_AllowJoining: 1
-  m_JoinBehavior: 0
+  m_JoinBehavior: 1
   m_PlayerJoinedEvent:
     m_PersistentCalls:
       m_Calls: []
@@ -10390,7 +10394,7 @@ MonoBehaviour:
       m_SingletonActionBindings:
       - m_Name: 
         m_Id: 162057b5-4482-4ae9-b832-783dbee50485
-        m_Path: <Gamepad>/select
+        m_Path: <Gamepad>/start
         m_Interactions: 
         m_Processors: 
         m_Groups: 
@@ -10398,7 +10402,7 @@ MonoBehaviour:
         m_Flags: 0
       - m_Name: 
         m_Id: 01d9ba66-6106-4e2d-a565-82b83cf4043b
-        m_Path: <Keyboard>/space
+        m_Path: <Keyboard>/j
         m_Interactions: 
         m_Processors: 
         m_Groups: 
@@ -10453,6 +10457,7 @@ MonoBehaviour:
   - {fileID: 1848916492}
   - {fileID: 160173535}
   gameManagerScript: {fileID: 1494486029}
+  WinText: {fileID: 0}
 --- !u!114 &1494486029
 MonoBehaviour:
   m_ObjectHideFlags: 0

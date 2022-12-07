@@ -10,6 +10,7 @@ TagManager:
   - StartButton
   - QuitButton
   - GameManager
+  - PauseMenu
   layers:
   - Default
   - TransparentFX
