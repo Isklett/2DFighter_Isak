@@ -20,12 +20,24 @@ public class CharacterScript : MonoBehaviour
     private Animator animator;
     [SerializeField] private bool isGrounded;
     AttackScript attackScript;
+    public int health;
+    [SerializeField] private GameManagerScript gameManagerScript;
+    [SerializeField] private PlayerInput playerInput;
+
+    //Input
+    private Vector2 movementInput;
+    private bool jumpButton_state_toggled = false;
+
+    public void OnMove(InputAction.CallbackContext ctx) => movementInput = ctx.ReadValue<Vector2>();
+    public void OnJump(InputAction.CallbackContext ctx) => jumpButton_state_toggled = ctx.action.WasPressedThisFrame();
+
 
     void Start()
     {
         attackScript = GetComponentInChildren<AttackScript>();
         animator = GetComponentInChildren<Animator>();
         moveSpeed = 1.0f;
+        health = 3;
     }
     void FixedUpdate()
     {
@@ -67,15 +79,18 @@ public class CharacterScript : MonoBehaviour
             Respawn();
         }
 
-        //if (!attackScript.isHit)
-        //{
-        //    Move();
-        //}
-
     }
 
     private void Update()
     {
+        if (gameManagerScript.isMenu)
+        {
+            playerInput.SwitchCurrentActionMap("UI");
+        }
+        else if (gameManagerScript.isPlaying)
+        {
+            playerInput.SwitchCurrentActionMap("Player");
+        }
         if (!attackScript.isHit)
         {
             Move();
@@ -83,8 +98,6 @@ public class CharacterScript : MonoBehaviour
     }
     private void Move()
     {
-        var gamepad = Gamepad.current;
-
         if (doubleJump <= 0)
         {
             jumpSpeed = 5.0f;
@@ -93,67 +106,29 @@ public class CharacterScript : MonoBehaviour
         {
             jumpSpeed = 4.0f;
         }
-        
-        if (isKeyboard)
+        if (jumpButton_state_toggled && doubleJump <= 1)
         {
-            if (Input.GetKeyDown(jump) && doubleJump <= 1)
+            if (jumpTimer <= 0)
             {
-                if (jumpTimer <= 0)
-                {
-                    animator.SetTrigger("jump");
-                    rb.velocity = new Vector3(rb.velocity.x, 0.0f, rb.velocity.z);
-                    rb.velocity += jumpSpeed * Vector3.up;
-                    doubleJump++;
-                    jumpTimer = 5;
-                }
-            }
-            if (Input.GetKey(left))
-            {
-                if (rb.velocity.x >= -2.0f)
-                {
-                    rb.velocity += moveSpeed * Vector3.left;
-                }
-            }
-            if (Input.GetKeyDown(slam) && !isGrounded && dropTimer <= 0)
-            {
-                rb.velocity += -10.0f * Vector3.up;
-                dropTimer = 20;
-            }
-            if (Input.GetKey(right))
-            {
-                if (rb.velocity.x <= 2.0f)
-                {
-                    rb.velocity += moveSpeed * Vector3.right;
-                }
+                animator.SetTrigger("jump");
+                rb.velocity = new Vector3(rb.velocity.x, 0.0f, rb.velocity.z);
+                rb.velocity += jumpSpeed * Vector3.up;
+                doubleJump++;
+                jumpTimer = 5;
             }
         }
-
-        if (!isKeyboard)
+        if (rb.velocity.x >= -2.0f && movementInput.x < 0.0f)
         {
-            if (gamepad.aButton.wasPressedThisFrame && doubleJump <= 1)
-            {
-                if (jumpTimer <= 0)
-                {
-                    animator.SetTrigger("jump");
-                    rb.velocity = new Vector3(rb.velocity.x, 0.0f, rb.velocity.z);
-                    rb.velocity += jumpSpeed * Vector3.up;
-                    doubleJump++;
-                    jumpTimer = 5;
-                }
-            }
-            if (rb.velocity.x >= -2.0f && gamepad.leftStick.ReadValue().x < 0.0f)
-            {
-                rb.velocity += new Vector3(gamepad.leftStick.ReadValue().x * moveSpeed, 0.0f, 0.0f);
-            }
-            if (rb.velocity.x <= 2.0f && gamepad.leftStick.ReadValue().x > 0.0f)
-            {
-                rb.velocity += new Vector3(gamepad.leftStick.ReadValue().x * moveSpeed, 0.0f, 0.0f);
-            }
-            if (gamepad.leftStick.ReadValue().x < 0.3 && gamepad.leftStick.ReadValue().x > -0.3 && gamepad.leftStick.ReadValue().y < -0.7 && !isGrounded && dropTimer <= 0)
-            {
-                rb.velocity += -5.0f * Vector3.up;
-                dropTimer = 20;
-            }
+            rb.velocity += new Vector3(movementInput.x * moveSpeed, 0.0f, 0.0f);
+        }
+        if (rb.velocity.x <= 2.0f && movementInput.x > 0.0f)
+        {
+            rb.velocity += new Vector3(movementInput.x * moveSpeed, 0.0f, 0.0f);
+        }
+        if (movementInput.y < -0.7 && !isGrounded && dropTimer <= 0)
+        {
+            rb.velocity += -5.0f * Vector3.up;
+            dropTimer = 20;
         }
     }
 
@@ -162,6 +137,7 @@ public class CharacterScript : MonoBehaviour
         GetComponentInChildren<AttackScript>().health = 0.0f;
         transform.position = new Vector3(0, 10, 0);
         rb.velocity = Vector3.zero;
+        health--;
     }
 
 
@@ -188,7 +164,6 @@ public class CharacterScript : MonoBehaviour
 
     private void OnTriggerStay(Collider other)
     {
-        var gamepad = Gamepad.current;
         if (other.gameObject.CompareTag("Ground") && rb.velocity.y <= 0.5 && rb.velocity.y >= -0.5 && jumpTimer <= 0)
         {
             doubleJump = 0;
@@ -202,23 +177,11 @@ public class CharacterScript : MonoBehaviour
 
         if (other.gameObject.CompareTag("Platform"))
         {
-            if (!isKeyboard)
+            if (movementInput.x < 0.3 && movementInput.x > -0.3 && movementInput.y < -0.7 && dropTimer <= 0)
             {
-                if (gamepad.leftStick.ReadValue().x < 0.3 && gamepad.leftStick.ReadValue().x > -0.3 && gamepad.leftStick.ReadValue().y < -0.7 && dropTimer <= 0)
-                {
-                    Physics.IgnoreCollision(other.gameObject.GetComponent<BoxCollider>(), gameObject.GetComponent<CapsuleCollider>(), true);
-                    dropTimer = 60;
-                    rb.velocity += -1.0f * Vector3.up;
-                }
-            }
-            else
-            {
-                if (Input.GetKeyDown(slam) && dropTimer <= 0)
-                {
-                    Physics.IgnoreCollision(other.gameObject.GetComponent<BoxCollider>(), gameObject.GetComponent<CapsuleCollider>(), true);
-                    dropTimer = 60;
-                    rb.velocity += -1.0f * Vector3.up;
-                }
+                Physics.IgnoreCollision(other.gameObject.GetComponent<BoxCollider>(), gameObject.GetComponent<CapsuleCollider>(), true);
+                dropTimer = 60;
+                rb.velocity += -1.0f * Vector3.up;
             }
         }
     }
