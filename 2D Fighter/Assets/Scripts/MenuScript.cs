@@ -18,17 +18,24 @@ public class MenuScript : MonoBehaviour
     private int selectedButton;
     private Vector3 tempQuitSize;
     private Vector3 tempStartSize;
+    private bool femaleChar;
+    [SerializeField] private List<GameObject> femaleParts;
+    [SerializeField] private List<GameObject> maleParts;
+    private int changeTimer;
+    private bool canChange;
 
     //Input
     private bool upDpad_state_toggled = false;
     private bool downDpad_state_toggled = false;
     private bool selectButton_state_toggled = false;
     private bool pauseButton_state_toggled = false;
+    private bool changeCharButton_state_toggled = false;
 
     public void OnUpButtonPress(InputAction.CallbackContext ctx) => upDpad_state_toggled = ctx.action.WasPressedThisFrame();
     public void OnDownButtonPress(InputAction.CallbackContext ctx) => downDpad_state_toggled = ctx.action.WasPressedThisFrame();
     public void OnSelect(InputAction.CallbackContext ctx) => selectButton_state_toggled = ctx.action.WasPressedThisFrame();
     public void OnPause(InputAction.CallbackContext ctx) => pauseButton_state_toggled = ctx.action.WasPressedThisFrame();
+    public void OnCharChange(InputAction.CallbackContext ctx) => changeCharButton_state_toggled = ctx.action.WasPressedThisFrame();
 
     // Start is called before the first frame update
     void Start()
@@ -101,7 +108,6 @@ public class MenuScript : MonoBehaviour
                     Pause();
                 }
             }
-
             if (hasStarted)
             {
                 StartButton.GetComponentInChildren<TMPro.TextMeshProUGUI>().text = "RESUME";
@@ -111,7 +117,72 @@ public class MenuScript : MonoBehaviour
                 StartButton.GetComponentInChildren<TMPro.TextMeshProUGUI>().text = "START";
             }
         }
+        if (!hasStarted && canChange)
+        {
+            ChangeChar();
+        }
     }
+
+    private void FixedUpdate()
+    {
+        print(canChange);
+        if (changeTimer > 0)
+        {
+            changeTimer--;
+        }
+        else
+        {
+            canChange = true;
+        }
+    }
+
+    public IEnumerator ChangeCharCR()
+    {
+        if (femaleChar)
+        {
+            femaleParts[0].gameObject.SetActive(true);
+            femaleParts[1].gameObject.SetActive(true);
+            femaleParts[2].gameObject.SetActive(true);
+            femaleParts[3].gameObject.SetActive(true);
+            femaleParts[4].gameObject.SetActive(true);
+            femaleParts[5].gameObject.SetActive(true);
+            maleParts[0].gameObject.SetActive(false);
+            maleParts[1].gameObject.SetActive(false);
+            maleParts[2].gameObject.SetActive(false);
+            maleParts[3].gameObject.SetActive(false);
+            maleParts[4].gameObject.SetActive(false);
+            maleParts[5].gameObject.SetActive(false);
+            femaleChar = false;
+        }
+        else
+        {
+            femaleParts[0].gameObject.SetActive(false);
+            femaleParts[1].gameObject.SetActive(false);
+            femaleParts[2].gameObject.SetActive(false);
+            femaleParts[3].gameObject.SetActive(false);
+            femaleParts[4].gameObject.SetActive(false);
+            femaleParts[5].gameObject.SetActive(false);
+            maleParts[0].gameObject.SetActive(true);
+            maleParts[1].gameObject.SetActive(true);
+            maleParts[2].gameObject.SetActive(true);
+            maleParts[3].gameObject.SetActive(true);
+            maleParts[4].gameObject.SetActive(true);
+            maleParts[5].gameObject.SetActive(true);
+            femaleChar = true;
+        }
+        canChange = false;
+        changeTimer = 10;
+        yield return new WaitForSeconds(0.1f);
+    }
+
+    void ChangeChar()
+    {
+        if (changeCharButton_state_toggled)
+        {
+            StartCoroutine(ChangeCharCR());
+        }
+    }
+
     void StartPlaying()
     {
         StartButton.GetComponentInChildren<Image>().enabled = false;
